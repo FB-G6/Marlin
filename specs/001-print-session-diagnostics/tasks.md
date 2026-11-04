@@ -134,11 +134,11 @@ description: "Task list for feature 001-print-session-diagnostics"
 
 **Зависимость**: требует завершённой US1 (модуль и точки фиксации).
 
-- [ ] T035 [US2] Реализовать в `Marlin/src/feature/print_session.cpp` сброс остаточного состояния в `start_session()`: обнулить `pending_source`, счётчик ошибок чтения SD, флаг отложенного показа окна и `FLAG_UNRECORDED_EMERGENCY`, чтобы предыдущая сессия не влияла на новую печать (US2 сценарий 3)
-- [ ] T036 [US2] Реализовать в `Marlin/src/feature/print_session.cpp` идемпотентность `end_session()`: при отсутствии активной сессии событие не создаётся (защита от задвоения при двойном вызове abort/finish и от ложного события «сброс» после штатного завершения)
-- [ ] T037 [US2] Зафиксировать в `Marlin/src/feature/print_session.h` doc-комментарий со ссылкой на `specs/001-print-session-diagnostics/contracts/stop-reasons.md` §3 как на эталон поведения при остановке (FR-006) и явно указать, что фича поведение не меняет
-- [ ] T038 [US2] Проверить аддитивность правок пути останова: в `Marlin/src/MarlinCore.cpp` диффы `abortSDPrinting()`, `finishSDPrinting()`, `kill()` содержат только добавленные строки под `FB_G6_PRINT_JOURNAL`; `thermalManager.disable_all_heaters()`, `quickstop_stepper()`, `EVENT_GCODE_SD_ABORT "G28XY"`, `SD_FINISHED_RELEASECOMMAND "M84"` и `minkill()` не изменены — зафиксировать в описании PR
-- [ ] T053 [US2] В `Marlin/src/MarlinCore.cpp::stop()` (строка 970) под `FB_G6_PRINT_JOURNAL` вызвать `print_session.end_session(CAUSE_INTERNAL_STOP, SOURCE_FIRMWARE)` после `thermalManager.disable_all_heaters()` и до `marlin_state = MF_STOPPED` — код `0x50` из `contracts/stop-reasons.md` §1 иначе никогда не фиксируется (FR-001)
+- [X] T035 [US2] Реализовать в `Marlin/src/feature/print_session.cpp` сброс остаточного состояния в `start_session()`: обнулить `pending_source`, счётчик ошибок чтения SD, флаг отложенного показа окна и `FLAG_UNRECORDED_EMERGENCY`, чтобы предыдущая сессия не влияла на новую печать (US2 сценарий 3)
+- [X] T036 [US2] Реализовать в `Marlin/src/feature/print_session.cpp` идемпотентность `end_session()`: при отсутствии активной сессии событие не создаётся (защита от задвоения при двойном вызове abort/finish и от ложного события «сброс» после штатного завершения)
+- [X] T037 [US2] Зафиксировать в `Marlin/src/feature/print_session.h` doc-комментарий со ссылкой на `specs/001-print-session-diagnostics/contracts/stop-reasons.md` §3 как на эталон поведения при остановке (FR-006) и явно указать, что фича поведение не меняет
+- [X] T038 [US2] Проверить аддитивность правок пути останова: в `Marlin/src/MarlinCore.cpp` диффы `abortSDPrinting()`, `finishSDPrinting()`, `kill()` содержат только добавленные строки под `FB_G6_PRINT_JOURNAL`; `thermalManager.disable_all_heaters()`, `quickstop_stepper()`, `EVENT_GCODE_SD_ABORT "G28XY"`, `SD_FINISHED_RELEASECOMMAND "M84"` и `minkill()` не изменены — зафиксировать в описании PR
+- [X] T053 [US2] В `Marlin/src/MarlinCore.cpp::stop()` (строка 970) под `FB_G6_PRINT_JOURNAL` вызвать `print_session.end_session(CAUSE_INTERNAL_STOP, SOURCE_FIRMWARE)` после `thermalManager.disable_all_heaters()` и до `marlin_state = MF_STOPPED` — код `0x50` из `contracts/stop-reasons.md` §1 иначе никогда не фиксируется (FR-001)
 - [ ] T039 [US2] **Checkpoint**: ручная проверка S1, S7, S8, S10 из `quickstart.md` — поведение осей/нагрева/стола совпадает с таблицей `contracts/stop-reasons.md` §3, задвоения событий нет
 
 **Checkpoint**: US1 и US2 работают независимо; поведение остановки документировано и подтверждено.
@@ -159,11 +159,11 @@ M524 из консоли, M112 из консоли и из WiFi) и убедит
 **Зависимость**: требует завершённой US1 (метки источника и модуль). От US2 не
 зависит.
 
-- [ ] T040 [P] [US3] В `Marlin/src/module/temperature.cpp::loud_kill()` (строка 1243) вызвать `print_session.note_emergency(CAUSE_EMERGENCY_THERMAL)` перед `kill()`
-- [ ] T041 [P] [US3] В `Marlin/src/module/temperature.cpp` (обработчик M112, строка 1863) вызвать `print_session.note_emergency(CAUSE_EMERGENCY_M112)` и `print_session.note_source(SOURCE_HOST)` перед `kill(...)`
-- [ ] T042 [P] [US3] В `Marlin/src/module/wifi/wifi.cpp` (обработчик M112, строка 2080) вызвать `print_session.note_emergency(CAUSE_EMERGENCY_M112)` и `print_session.note_source(SOURCE_NETWORK)` перед `kill(...)`
-- [ ] T043 [US3] Реализовать в `Marlin/src/feature/print_session.cpp` `emergency_cause()`: вернуть выставленный подтип, иначе `CAUSE_EMERGENCY_OTHER`. Для `abortSDPrinting()` без метки источника использовать отдельную ветку `cause_for_abort()` → `CAUSE_UNKNOWN` + `SOURCE_UNKNOWN` (FR-007), запись сохраняется с длительностью, процентом, этапом и именем файла
-- [ ] T044 [US3] Реализовать в `Marlin/src/feature/print_session.cpp` хранение «последней известной активности» (этап, процент, длительность) для события `CAUSE_UNKNOWN` и для синтезированного события сброса (US3 сценарий 3)
+- [X] T040 [P] [US3] В `Marlin/src/module/temperature.cpp::loud_kill()` (строка 1243) вызвать `print_session.note_emergency(CAUSE_EMERGENCY_THERMAL)` перед `kill()`
+- [X] T041 [P] [US3] В `Marlin/src/module/temperature.cpp` (обработчик M112, строка 1863) вызвать `print_session.note_emergency(CAUSE_EMERGENCY_M112)` и `print_session.note_source(SOURCE_HOST)` перед `kill(...)`
+- [X] T042 [P] [US3] В `Marlin/src/module/wifi/wifi.cpp` (обработчик M112, строка 2080) вызвать `print_session.note_emergency(CAUSE_EMERGENCY_M112)` и `print_session.note_source(SOURCE_NETWORK)` перед `kill(...)`
+- [X] T043 [US3] Реализовать в `Marlin/src/feature/print_session.cpp` `emergency_cause()`: вернуть выставленный подтип, иначе `CAUSE_EMERGENCY_OTHER`. Для `abortSDPrinting()` без метки источника использовать отдельную ветку `cause_for_abort()` → `CAUSE_UNKNOWN` + `SOURCE_UNKNOWN` (FR-007), запись сохраняется с длительностью, процентом, этапом и именем файла
+- [X] T044 [US3] Реализовать в `Marlin/src/feature/print_session.cpp` хранение «последней известной активности» (этап, процент, длительность) для события `CAUSE_UNKNOWN` и для синтезированного события сброса (US3 сценарий 3)
 - [ ] T045 [US3] **Checkpoint**: ручная проверка S2, S3, S10 из `quickstart.md` — источники «Сеть»/«Консоль»/«Прошивка» и подтипы аварий различаются; таблица кодов `contracts/stop-reasons.md` §1–2 совпадает с фактическим поведением
 
 **Checkpoint**: все три истории функциональны и проверяемы независимо.
@@ -175,9 +175,9 @@ M524 из консоли, M112 из консоли и из WiFi) и убедит
 **Purpose**: обязательные проверки принципа IV, версия и материалы PR.
 
 - [ ] T046 Отформатировать изменённые файлы: `buildroot/bin/format_code feature/print_session.cpp feature/print_session.h` и остальные файлы из списка `plan.md`; проверить `git diff --stat`, что посторонние файлы не затронуты
-- [ ] T047 Собрать все четыре варианта: `params_104gt.h`, `params_3950.h`, `params_bltouch104gt.h`, `params_bltouch3950.h` (копирование в `Marlin/build_params.h` + `pio run -e mks_robin_nano_v3`), затем `git checkout -- Marlin/build_params.h`
-- [ ] T048 Сравнить `RAM`/`Flash` с базовым логом из T001: прирост flash ≤ 2 % (SC-006), RAM ≤ 1 КБ; результат приложить к PR
-- [ ] T049 Обновить `Marlin/Version.h`: `SHORT_BUILD_VERSION` для обеих веток `TEMP_SENSOR_0` (5 → 104GT, 13 → 3950) согласованно
+- [X] T047 Собрать все четыре варианта: `params_104gt.h`, `params_3950.h`, `params_bltouch104gt.h`, `params_bltouch3950.h` (копирование в `Marlin/build_params.h` + `pio run -e mks_robin_nano_v3`), затем `git checkout -- Marlin/build_params.h`
+- [X] T048 Сравнить `RAM`/`Flash` с базовым логом из T001: прирост flash ≤ 2 % (SC-006), RAM ≤ 1 КБ; результат приложить к PR
+- [X] T049 Обновить `Marlin/Version.h`: `SHORT_BUILD_VERSION` для обеих веток `TEMP_SENSOR_0` (5 → 104GT, 13 → 3950) согласованно
 - [ ] T050 Пройти все сценарии S1–S16 из `specs/001-print-session-diagnostics/quickstart.md` на принтере; зафиксировать фактическое поведение, отметить непроверенное (например, S10/S16 при отказе от проверки)
 - [ ] T051 Подготовить материалы PR по `quickstart.md` §6: логи сборок до/после, результат четырёх сборок, список пройденных сценариев, использованный `Marlin/build_params.h`, вывод о необходимости `Initialize EEPROM` (ожидается: не требуется)
 
@@ -294,3 +294,15 @@ Task: "wifi.cpp: M112 → note_emergency(CAUSE_EMERGENCY_M112) + SOURCE_NETWORK"
   после T034, T053 — в Phase 4 после T038
 - Коммит после каждой задачи или логической группы; форматирование и поведение
   не смешивать в одном коммите
+- **Статус T046 (2026-11-04)**: остаётся открытой. В окружении доступен только
+  `uncrustify 0.83`, а `buildroot/share/extras/uncrustify.cfg` написан под
+  версию 0.74: прогон переформатирует файл целиком (сдвигает `#if`-блоки и
+  `enum`), создавая посторонний дифф. Новый код (T035, T044, T053) оформлен
+  вручную по стилю репозитория; форматирование нужно повторить на машине с
+  `uncrustify 0.74`.
+- **Статус проверок на железе (2026-11-04)**: T034, T039, T045, T050, T052,
+  T051 требуют принтера и не выполнены в этой среде. Сборки (T034 в части
+  компиляции, T047, T048) пройдены: `mks_robin_nano_v3` собирается без
+  warning'ов; RAM 72 948 Б (+632 Б к базе), flash 361 564 Б (+5 816 Б, +1,64 %).
+  Четыре варианта (`params_104gt.h`, `params_3950.h`,
+  `params_bltouch104gt.h`, `params_bltouch3950.h`) собираются успешно.
