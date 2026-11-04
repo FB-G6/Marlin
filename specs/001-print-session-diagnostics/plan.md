@@ -219,6 +219,11 @@ Marlin/
     `wifi.cpp` M26 → `SOURCE_NETWORK`, `M524.cpp` и emergency-M524 →
     `SOURCE_HOST`, `cardreader.cpp::release()` → `SOURCE_MEDIA`,
     `touch.cpp`/`menu_main.cpp` → `SOURCE_LOCAL_UI`.
+    Условие для `M524` (BUG-002): аварийный парсер выставляет
+    `card.flag.abort_sd_printing = true` до вызова команды, поэтому
+    `IS_SD_PRINTING()` внутри `M524.cpp` уже false — источник фиксируется по
+    признаку уже запрошенного аборта, а повторный `abortFilePrintSoon()` не
+    выполняется (он присваивает флаг из `isFileOpen()` и мог бы снять аборт).
 12. `gcode/queue.cpp::get_sdcard_commands()`: счётчик подряд идущих ошибок
     чтения (`n < 0 && !card_eof`); при достижении
     `FB_G6_SD_READ_ERROR_LIMIT` — метка `SOURCE_MEDIA` + `abortFilePrintSoon()`;
@@ -275,6 +280,7 @@ Marlin/
 | R6 | Область журнала пересекается с `SettingsData` (UBL выключен) | `static_assert` в `settings.cpp` + проверка `MARLIN_EEPROM_SIZE` в модуле |
 | R7 | Расхождение «модальное окно поверх экрана» и реализации (отдельный экран) | Зафиксировано в `contracts/ui-contract.md`: у TFT нет композитинга, модальность реализуется через стек экранов, возврат — на статус-экран (фактическое поведение `ui.abort_print()`) |
 | R8 | Порча очереди TFT при ручной отрисовке экрана (BUG-001) | `tft.add_text()`/`tft.add_rectangle()` не создают задачу, а дописывают параметры в последнюю; после `tft.fill()` они затирают маркер `TASK_END_OF_QUEUE`, задача не завершается и `TFT_Queue::sync()` крутится до сброса по watchdog. Фон рисуется только canvas-задачей (`tft.canvas()` + `tft.set_background()`), как во всех штатных экранах `TFT_COLOR_UI`; проверка на принтере — T056 |
+| R9 | Остановка по `M524` из консоли теряет источник (BUG-002) | Аварийный парсер (`EP_M524` → `sd_abort_by_M524`) выставляет `card.flag.abort_sd_printing = true` до `process_subcommands_now(F("M524"))`, а `IS_SD_PRINTING()` определён как `sdprinting && !abort_sd_printing` → в `M524.cpp` печать выглядит завершённой. Различаем «печать идёт» и «аборт уже запрошен»: во втором случае только фиксируется `SOURCE_HOST`, флаг не трогается; проверка на принтере — T058 |
 
 ## Complexity Tracking
 
@@ -299,3 +305,7 @@ Marlin/
 зафиксировано требование рисовать экран причины одной canvas-задачей;
 добавлен риск R8 (порча очереди TFT при ручной отрисовке). План в остальном
 был верным — дефект был в реализации (`tft.fill()` вместо `tft.canvas()`).
+
+**Bugfix**: 2026-11-04 — BUG-002 Обновлено из bugfix-патча: в Фазе B п. 11
+зафиксировано условие пути через аварийный парсер `M524`
+(`abort_sd_printing` выставляется до вызова команды); добавлен риск R9.

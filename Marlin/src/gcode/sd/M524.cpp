@@ -43,9 +43,15 @@ void GcodeSuite::M524() {
 
   #else
 
-    if (IS_SD_PRINTING()) {
+    // The emergency parser sets card.flag.abort_sd_printing before running
+    // this command, which already makes IS_SD_PRINTING() false. In that case
+    // only record the source: abortFilePrintSoon() assigns the flag from
+    // isFileOpen() and could cancel the abort that is already pending.
+    const bool pending_abort = card.flag.abort_sd_printing;
+
+    if (IS_SD_PRINTING() || pending_abort) {
       TERN_(FB_G6_PRINT_JOURNAL, print_session.note_source(SOURCE_HOST));
-      card.abortFilePrintSoon();
+      if (!pending_abort) card.abortFilePrintSoon();
     }
     else if (card.isMounted())
       card.closefile();
