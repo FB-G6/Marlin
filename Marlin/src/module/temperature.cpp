@@ -36,6 +36,7 @@
 #include "endstops.h"
 #include "planner.h"
 #include "printcounter.h"
+#include "../feature/print_session.h"
 
 #if EITHER(HAS_COOLER, LASER_COOLANT_FLOW_METER)
   #include "../feature/cooler.h"
@@ -1258,6 +1259,7 @@ inline void loud_kill(FSTR_P const lcd_msg, const heater_id_t heater_id) {
       planner.synchronize();
     }
   #endif
+  TERN_(FB_G6_PRINT_JOURNAL, print_session.note_emergency(CAUSE_EMERGENCY_THERMAL));
   kill(lcd_msg, HEATER_FSTR(heater_id));
 }
 
@@ -1860,7 +1862,13 @@ void Temperature::task() {
   REMEMBER(mh, no_reentry, true);
 
   #if ENABLED(EMERGENCY_PARSER)
-    if (emergency_parser.killed_by_M112) kill(FPSTR(M112_KILL_STR), nullptr, true);
+    if (emergency_parser.killed_by_M112) {
+      #if ENABLED(FB_G6_PRINT_JOURNAL)
+        print_session.note_emergency(CAUSE_EMERGENCY_M112);
+        print_session.note_source(SOURCE_HOST);
+      #endif
+      kill(FPSTR(M112_KILL_STR), nullptr, true);
+    }
 
     if (emergency_parser.quickstop_by_M410) {
       emergency_parser.quickstop_by_M410 = false; // quickstop_stepper may call idle so clear this now!

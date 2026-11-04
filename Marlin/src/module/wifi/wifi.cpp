@@ -2079,7 +2079,11 @@ void get_wifi_commands() {
             wait_for_heatup = false;
             TERN_(HAS_MARLINUI_MENU, wait_for_user = false);
           }
-          if (strcmp_P(command, PSTR("M112")) == 0) kill(FPSTR(M112_KILL_STR), nullptr, true);
+          if (strcmp_P(command, PSTR("M112")) == 0) {
+            TERN_(FB_G6_PRINT_JOURNAL, print_session.note_emergency(CAUSE_EMERGENCY_M112));
+            TERN_(FB_G6_PRINT_JOURNAL, print_session.note_source(SOURCE_NETWORK));
+            kill(FPSTR(M112_KILL_STR), nullptr, true);
+          }
           if (strcmp_P(command, PSTR("M410")) == 0) quickstop_stepper();
         #endif
 

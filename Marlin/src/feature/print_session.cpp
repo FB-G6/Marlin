@@ -86,6 +86,18 @@ namespace {
   StopEvent no_event; // All zeroes
 
   /**
+   * Last known activity of the current session. The live values are already
+   * gone when the media is removed, the board resets or the stop cause is
+   * unknown, so the event is completed from this snapshot (FR-007, FR-010).
+   */
+  struct LastActivity {
+    uint32_t duration_s;
+    uint8_t  percent;
+    uint8_t  stage;
+  };
+  LastActivity last_activity;
+
+  /**
    * Frozen on purpose: survives hal.reboot() and the reset button,
    * destroyed by a power loss (see FLAG_EMERGENCY_DETAIL_LOST).
    */
@@ -197,6 +209,21 @@ namespace {
       return p <= 100 ? p : 0xFF;
     }
     return session.percent;
+  }
+
+  /**
+   * Merge the live values into the snapshot. A value that cannot be read
+   * keeps the last known one, so a stop still carries duration, percent and
+   * stage (FR-007).
+   */
+  void remember_activity() {
+    const uint8_t stage = current_stage();
+    const uint8_t percent = current_percent();
+    const uint32_t duration = print_job_timer.duration();
+
+    if (stage != STAGE_NONE) last_activity.stage = stage;
+    if (percent != 0xFF) last_activity.percent = percent;
+    if (duration > last_activity.duration_s) last_activity.duration_s = clamp_duration(duration);
   }
 
   StopCause reset_cause(const uint8_t mcu) {
@@ -394,6 +421,24 @@ namespace {
     close_active_session();
   }
 
+  /**
+   * Drop everything left over from the previous session, so nothing leaks
+   * into the next print (US2 scenario 3).
+   */
+  void reset_residual_state() {
+    pending_source = SOURCE_UNKNOWN;
+    sd_read_errors = 0;
+    modal_pending = false;
+    emergency_committed = false;
+    emergency_record_valid = false;
+    emergency_detail_lost = false;
+    emergency_cause_ram = 0;
+    emergency_source_ram = SOURCE_UNKNOWN;
+
+    memset(&last_activity, 0, sizeof(last_activity));
+    last_activity.stage = STAGE_PRINTING;
+  }
+
 } // namespace
 
 void PrintSession::set_boot_reset(const uint8_t mcu) { boot_reset = mcu; }
@@ -490,13 +535,15 @@ void PrintSession::commit_emergency() {
   if (journal_ready && session_active && !emergency_committed) {
     emergency_committed = true;
 
+    remember_activity();
+
     StopEvent ev;
     ev.seq = next_seq();
-    ev.duration_s = clamp_duration(print_job_timer.duration());
-    ev.percent = current_percent();
+    ev.duration_s = last_activity.duration_s;
+    ev.percent = last_activity.percent;
     ev.cause = cause;
     ev.source = src;
-    ev.stage = current_stage();
+    ev.stage = last_activity.stage;
     ev.flags = FLAG_EMERGENCY;
     copy_filename(ev.file, session.file);
 
@@ -528,9 +575,8 @@ void PrintSession::start_session() {
     last_checkpoint_ms = millis();
   }
 
-  sd_read_errors = 0;
-  modal_pending = false;
-  emergency_committed = false;
+  // A new print must not inherit anything from the previous session
+  reset_residual_state();
 }
 
 void PrintSession::checkpoint(const bool force) {
@@ -542,9 +588,11 @@ void PrintSession::checkpoint(const bool force) {
     if (!force) return;
   #endif
 
-  session.elapsed_s = clamp_duration(print_job_timer.duration());
-  session.percent = current_percent();
-  session.stage = current_stage();
+  remember_activity();
+
+  session.elapsed_s = last_activity.duration_s;
+  session.percent = last_activity.percent;
+  session.stage = last_activity.stage;
   session.seq++;
   write_active();
   last_checkpoint_ms = millis();
@@ -553,13 +601,15 @@ void PrintSession::checkpoint(const bool force) {
 void PrintSession::end_session(const StopCause cause, const StopSource source) {
   if (!journal_ready || !session_active) return;
 
+  remember_activity();
+
   StopEvent ev;
   ev.seq = next_seq();
-  ev.duration_s = clamp_duration(print_job_timer.duration());
-  ev.percent = current_percent();
+  ev.duration_s = last_activity.duration_s;
+  ev.percent = last_activity.percent;
   ev.cause = cause;
   ev.source = source;
-  ev.stage = cause == CAUSE_COMPLETED ? STAGE_FINISHING : current_stage();
+  ev.stage = cause == CAUSE_COMPLETED ? STAGE_FINISHING : last_activity.stage;
   ev.flags = FLAG_NONE;
   copy_filename(ev.file, card.filename[0] ? card.filename : session.file);
 

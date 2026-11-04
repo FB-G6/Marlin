@@ -165,6 +165,8 @@ public:
   // Stop source bookkeeping for the single abort funnel.
   static void note_source(const StopSource src);
   static StopSource take_source();
+  // An abort without a source tag maps to CAUSE_UNKNOWN but is still
+  // recorded with duration, percent, stage and file name (FR-007).
   static StopCause cause_for_source(const StopSource src);
 
   // Emergency subtype bookkeeping. First specific subtype wins.

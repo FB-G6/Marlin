@@ -988,6 +988,11 @@ void minkill(const bool steppers_off/*=false*/) {
 void stop() {
   thermalManager.disable_all_heaters(); // 'unpause' taken care of in here
 
+  #if ENABLED(FB_G6_PRINT_JOURNAL)
+    // 'Stopped by firmware' (0x50) has no abort funnel of its own
+    print_session.end_session(CAUSE_INTERNAL_STOP, SOURCE_FIRMWARE);
+  #endif
+
   print_job_timer.stop();
 
   #if EITHER(PROBING_FANS_OFF, ADVANCED_PAUSE_FANS_PAUSE)
