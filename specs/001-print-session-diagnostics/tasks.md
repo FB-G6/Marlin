@@ -105,6 +105,8 @@ description: "Task list for feature 001-print-session-diagnostics"
 - [X] T024 [P] [US1] (reopened — BUG-002; закрыта T057/T058) В `Marlin/src/gcode/sd/M524.cpp` (строка 46, `abortFilePrintSoon()`) вызвать `print_session.note_source(SOURCE_HOST)` перед `card.abortFilePrintSoon()`
 - [X] T057 [US1] (BUG-002) Исправить `Marlin/src/gcode/sd/M524.cpp`: различать «печать идёт» (`IS_SD_PRINTING()`) и «аборт уже запрошен аварийным парсером» (`card.flag.abort_sd_printing`, выставляется в `module/temperature.cpp` до вызова команды, из-за чего `IS_SD_PRINTING()` уже false); во втором случае только `print_session.note_source(SOURCE_HOST)`, без повторного `card.abortFilePrintSoon()` — он присваивает флаг из `isFileOpen()` и при закрытом файле мог бы снять уже запрошенный аборт
 - [X] T058 [US1] (BUG-002) **Checkpoint**: проверено на принтере (`FBG6-2.1.2.8-104gt`, Nov 4 2026) — `M524` из консоли во время нагрева: печать отменена, окно причины показывает «Отменено / Консоль», в журнале запись «Отменено | Консоль», перезагрузки нет (`M27` → `Not SD printing`, нагреватели выключены); остановка с экрана остаётся «Отменено / Экран»
+- [X] T059 [US1] (BUG-003) `Marlin/src/gcode/sd/M524.cpp`: в ветке остановки печати (`IS_SD_PRINTING() || pending_abort`) сбрасывать `wait_for_heatup` и `wait_for_user`, как это делает `MarlinUI::abort_print()` — иначе `abortSDPrinting()` ждёт выхода из `M109`/`M190`/`M0`, а нагреватели продолжают греть до целевой температуры
+- [X] T060 [US1] (BUG-003) **Checkpoint**: проверено на принтере `M524` во время ожидания нагрева — остановка за секунды, нагреватели выключены, окно причины «Отменено / Консоль», `M27` → `Not SD printing`; контроль — остановка с экрана и `M108` без изменений
 - [X] T025 [P] [US1] В `Marlin/src/sd/cardreader.cpp::release()` (строка 538) вызвать `print_session.note_source(SOURCE_MEDIA)` перед `abortFilePrintSoon()`
 - [X] T026 [US1] В `Marlin/src/gcode/queue.cpp::get_sdcard_commands()` (строка 565) добавить `uint8_t`-счётчик подряд идущих ошибок чтения (`n < 0 && !card_eof`); при достижении `FB_G6_SD_READ_ERROR_LIMIT` — `print_session.note_source(SOURCE_MEDIA)` + `card.abortFilePrintSoon()`; успешное чтение сбрасывает счётчик
 
@@ -324,3 +326,10 @@ T030 закрывается повторно.
 Обе выполнены 2026-11-04 на сборке `FBG6-2.1.2.8-104gt` (журнал
 «Отменено | Консоль», окно причины появляется, экранный путь не изменился);
 после T057/T058 T024 закрывается повторно.
+
+**Bugfix**: 2026-11-04 — BUG-003 Обновлено из bugfix-патча: добавлены T059
+(остановка по `M524` прерывает блокирующее ожидание) и T060 (проверка на
+принтере; выполнена 2026-11-04: `M524` при 136 °C остановил печать за ~4 с).
+Причина: `abortSDPrinting()` вызывается только из `loop()`, поэтому во время
+`M109`/`M190`/`M0` запрошенный аборт не выполнялся, и печать продолжала
+греться до целевой температуры.

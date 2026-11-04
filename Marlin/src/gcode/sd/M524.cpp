@@ -25,6 +25,7 @@
 #if ENABLED(SDSUPPORT)
 
 #include "../gcode.h"
+#include "../../MarlinCore.h"
 #include "../../sd/cardreader.h"
 #include "../../feature/print_session.h"
 
@@ -50,6 +51,11 @@ void GcodeSuite::M524() {
     const bool pending_abort = card.flag.abort_sd_printing;
 
     if (IS_SD_PRINTING() || pending_abort) {
+      // Break a blocking heating or confirmation wait right away, as the UI
+      // stop does; the abort itself is only processed by loop(), so
+      // otherwise heaters keep heating until the wait ends.
+      wait_for_heatup = false;
+      TERN_(HAS_RESUME_CONTINUE, wait_for_user = false);
       TERN_(FB_G6_PRINT_JOURNAL, print_session.note_source(SOURCE_HOST));
       if (!pending_abort) card.abortFilePrintSoon();
     }
