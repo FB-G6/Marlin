@@ -474,6 +474,10 @@ void menu_configuration() {
   START_MENU();
   BACK_ITEM(MSG_MAIN);
 
+  #if ENABLED(FB_G6_PRINT_JOURNAL)
+    SUBMENU(MSG_STOP_JOURNAL, menu_journal);
+  #endif
+
   //
   // Debug Menu when certain options are enabled
   //

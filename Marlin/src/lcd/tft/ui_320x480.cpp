@@ -42,6 +42,7 @@ using namespace std;
 #include "../../module/motion.h"
 
 #include "../../feature/caselight.h"
+#include "../../feature/print_session.h"
 
 #include "../../feature/bedlevel/bedlevel.h"
 #include "../../feature/babystep.h"
@@ -171,6 +172,71 @@ void MarlinUI::draw_kill_screen() {
 
   tft.queue.sync();
 }
+
+#if ENABLED(FB_G6_PRINT_JOURNAL)
+  /**
+   * Stop reason "modal" screen. TFT_COLOR_UI has no compositing, so it is an
+   * opaque screen drawn on top of the screen stack and closed by any tap.
+   */
+  void MarlinUI::stop_reason_screen() {
+    const StopEvent &ev = print_session.last_event();
+
+    TERN_(TOUCH_SCREEN, touch.clear());
+    tft.queue.reset();
+    // Texts and rectangles are queued into the last task, so the background
+    // must be a canvas task. After a bare fill they would overwrite the
+    // end-of-queue marker and corrupt the task chain.
+    tft.canvas(0, 0, TFT_WIDTH, TFT_HEIGHT);
+    tft.set_background(COLOR_BACKGROUND);
+
+    tft_string.set(GET_TEXT_F(MSG_STOP_REASON_TITLE));
+    tft_string.trim();
+    tft.add_text(tft_string.center(TFT_WIDTH), 36, COLOR_WHITE, tft_string);
+
+    tft.add_rectangle(20, 74, TFT_WIDTH - 40, 2, COLOR_WHITE);
+
+    tft_string.set(GET_TEXT_F(MSG_STOP_CAUSE_LABEL));
+    tft.add_text(20, 92, COLOR_MENU_TEXT, tft_string);
+    tft_string.set(print_session.cause_text(StopCause(ev.cause)));
+    tft_string.trim();
+    tft.add_text(tft_string.center(TFT_WIDTH), 120, COLOR_MENU_VALUE, tft_string);
+
+    tft_string.set(GET_TEXT_F(MSG_STOP_SOURCE_LABEL));
+    tft.add_text(20, 170, COLOR_MENU_TEXT, tft_string);
+    tft_string.set(print_session.source_text(StopSource(ev.source)));
+    tft_string.trim();
+    tft.add_text(tft_string.center(TFT_WIDTH), 198, COLOR_MENU_VALUE, tft_string);
+
+    char value[24];
+    print_session.format_duration(value, ev.duration_s, ev.flags & FLAG_ESTIMATED_DURATION);
+    tft_string.set(GET_TEXT_F(MSG_STOP_TIME_LABEL));
+    tft.add_text(20, 250, COLOR_MENU_TEXT, tft_string);
+    tft.add_text(150, 250, COLOR_MENU_VALUE, value);
+
+    tft_string.set(GET_TEXT_F(MSG_STOP_FILE_LABEL));
+    tft.add_text(20, 290, COLOR_MENU_TEXT, tft_string);
+    tft.add_text(150, 290, COLOR_MENU_VALUE, ev.file[0] ? ev.file : "-");
+
+    if (ev.percent == 0xFF)
+      strcpy_P(value, PSTR("-"));
+    else
+      sprintf_P(value, PSTR("%u%%"), ev.percent);
+
+    tft_string.set(GET_TEXT_F(MSG_STOP_PROGRESS_LABEL));
+    tft.add_text(20, 330, COLOR_MENU_TEXT, tft_string);
+    tft.add_text(150, 330, COLOR_MENU_VALUE, value);
+
+    tft.add_rectangle(20, 386, TFT_WIDTH - 40, 2, COLOR_WHITE);
+
+    tft_string.set(GET_TEXT_F(MSG_STOP_TAP_TO_CLOSE));
+    tft_string.trim();
+    tft.add_text(tft_string.center(TFT_WIDTH), 410, COLOR_MENU_TEXT, tft_string);
+
+    TERN_(TOUCH_SCREEN, touch.add_control(BACK, 0, 0, TFT_WIDTH, TFT_HEIGHT));
+
+    tft.queue.sync();
+  }
+#endif
 
 void draw_heater_status(uint16_t x, uint16_t y, const int8_t Heater) {
   MarlinImage image = imgHotEnd;

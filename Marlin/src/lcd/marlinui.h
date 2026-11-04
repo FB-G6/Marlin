@@ -517,6 +517,14 @@ public:
 
     static void draw_kill_screen();
     static void kill_screen(FSTR_P const lcd_error, FSTR_P const lcd_component);
+
+    #if ENABLED(FB_G6_PRINT_JOURNAL)
+      #if HAS_UI_320x480
+        static void stop_reason_screen();
+      #endif
+      static void show_stop_reason();
+    #endif
+
     #if DISABLED(LIGHTWEIGHT_UI)
       static void draw_status_message(const bool blink);
     #endif

@@ -207,6 +207,10 @@ void menu_main();
 void menu_move();
 void menu_tune();
 
+#if ENABLED(FB_G6_PRINT_JOURNAL)
+  void menu_journal();
+#endif
+
 #if ENABLED(SDSUPPORT)
   void menu_media();
 #endif

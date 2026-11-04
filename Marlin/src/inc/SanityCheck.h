@@ -2973,6 +2973,25 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 #endif
 
 /**
+ * FB-G6 print session journal lives at the end of the EEPROM.
+ * The exact overlap with SettingsData is checked in module/settings.cpp,
+ * where SettingsData is defined.
+ */
+#if ENABLED(FB_G6_PRINT_JOURNAL)
+  #if DISABLED(EEPROM_SETTINGS)
+    #error "FB_G6_PRINT_JOURNAL requires EEPROM_SETTINGS."
+  #elif !defined(MARLIN_EEPROM_SIZE)
+    #error "FB_G6_PRINT_JOURNAL requires MARLIN_EEPROM_SIZE."
+  #elif MARLIN_EEPROM_SIZE <= FB_G6_PRINT_JOURNAL_REGION
+    #error "FB_G6_PRINT_JOURNAL_REGION does not fit into MARLIN_EEPROM_SIZE."
+  #elif !WITHIN(FB_G6_PRINT_JOURNAL_SLOTS, 1, 32)
+    #error "FB_G6_PRINT_JOURNAL_SLOTS must be within 1..32."
+  #elif FB_G6_PRINT_JOURNAL_REGION < 12 + 28 * FB_G6_PRINT_JOURNAL_SLOTS + 64
+    #error "FB_G6_PRINT_JOURNAL_REGION is too small for FB_G6_PRINT_JOURNAL_SLOTS."
+  #endif
+#endif
+
+/**
  * Make sure features that need to write to the SD card can
  */
 #if ENABLED(SDCARD_READONLY) && ANY(POWER_LOSS_RECOVERY, BINARY_FILE_TRANSFER, SDCARD_EEPROM_EMULATION)

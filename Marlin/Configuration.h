@@ -2258,7 +2258,10 @@
 #define EEPROM_BOOT_SILENT    // Keep M503 quiet and only give errors during first load
 #if ENABLED(EEPROM_SETTINGS)
   //#define EEPROM_AUTO_INIT  // Init EEPROM automatically on any errors.
-  #define EEPROM_INIT_NOW     // Init EEPROM on first boot after a new build.
+  #define EEPROM_INIT_NOW     // Keep the layout tag in EEPROM; see FB_G6_EEPROM_LAYOUT_ID
+  // The layout tag is FB_G6_EEPROM_LAYOUT_ID (Configuration_adv.h), not the build time,
+  // so a plain rebuild keeps the user's settings. Bump the tag (and EEPROM_VERSION
+  // in module/settings.cpp) whenever SettingsData changes.
 #endif
 
 // @section host

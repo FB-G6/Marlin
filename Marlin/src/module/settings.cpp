@@ -55,6 +55,10 @@
 #include "../gcode/gcode.h"
 #include "../MarlinCore.h"
 
+#if ENABLED(FB_G6_PRINT_JOURNAL)
+  #include "../feature/print_session.h"
+#endif
+
 #if EITHER(EEPROM_SETTINGS, SD_FIRMWARE_UPDATE)
   #include "../HAL/shared/eeprom_api.h"
 #endif
@@ -703,6 +707,11 @@ void MarlinSettings::postprocess() {
                 "ARCHIM2_SPI_FLASH_EEPROM_BACKUP_SIZE is insufficient to capture all EEPROM data.");
 #endif
 
+#if ENABLED(FB_G6_PRINT_JOURNAL)
+  static_assert(EEPROM_OFFSET + sizeof(SettingsData) <= PRINT_JOURNAL_ADDR,
+                "FB_G6 print journal overlaps EEPROM settings.");
+#endif
+
 //
 // This file simply uses the DEBUG_ECHO macros to implement EEPROM_CHITCHAT.
 // For deeper debugging of EEPROM issues enable DEBUG_EEPROM_READWRITE.
@@ -731,10 +740,16 @@ void MarlinSettings::postprocess() {
   const char version[4] = EEPROM_VERSION;
 
   #if ENABLED(EEPROM_INIT_NOW)
-    constexpr uint32_t strhash32(const char *s, const uint32_t h=0) {
-      return *s ? strhash32(s + 1, ((h + *s) << (*s & 3)) ^ *s) : h;
-    }
-    constexpr uint32_t build_hash = strhash32(__DATE__ __TIME__);
+    #ifdef FB_G6_EEPROM_LAYOUT_ID
+      // FB-G6: keep a stable layout tag instead of the build timestamp, so a
+      // rebuild does not wipe the user's settings (bump it with EEPROM_VERSION).
+      constexpr uint32_t build_hash = FB_G6_EEPROM_LAYOUT_ID;
+    #else
+      constexpr uint32_t strhash32(const char *s, const uint32_t h=0) {
+        return *s ? strhash32(s + 1, ((h + *s) << (*s & 3)) ^ *s) : h;
+      }
+      constexpr uint32_t build_hash = strhash32(__DATE__ __TIME__);
+    #endif
   #endif
 
   bool MarlinSettings::eeprom_error, MarlinSettings::validating;

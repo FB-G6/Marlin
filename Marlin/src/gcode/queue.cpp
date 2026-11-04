@@ -35,6 +35,7 @@ GCodeQueue queue;
 #include "../module/planner.h"
 #include "../module/temperature.h"
 #include "../MarlinCore.h"
+#include "../feature/print_session.h"
 #include "../core/bug_on.h"
 
 #if ENABLED(PRINTER_EVENT_LEDS)
@@ -562,7 +563,18 @@ void GCodeQueue::get_serial_commands() {
     while (!ring_buffer.full() && !card.eof()) {
       const int16_t n = card.get();
       const bool card_eof = card.eof();
-      if (n < 0 && !card_eof) { SERIAL_ERROR_MSG(STR_SD_ERR_READ); continue; }
+      if (n < 0 && !card_eof) {
+        SERIAL_ERROR_MSG(STR_SD_ERR_READ);
+        #if ENABLED(FB_G6_PRINT_JOURNAL)
+          // Escalate sustained read failures to a media error stop
+          if (print_session.note_read_error()) {
+            print_session.note_source(SOURCE_MEDIA);
+            card.abortFilePrintSoon();
+          }
+        #endif
+        continue;
+      }
+      TERN_(FB_G6_PRINT_JOURNAL, print_session.clear_read_errors());
 
       CommandLine &command = ring_buffer.commands[ring_buffer.index_w];
       const char sd_char = (char)n;

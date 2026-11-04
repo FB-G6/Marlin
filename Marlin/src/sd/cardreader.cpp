@@ -42,6 +42,7 @@
 #include "../module/printcounter.h"
 #include "../gcode/queue.h"
 #include "../module/settings.h"
+#include "../feature/print_session.h"
 #include "../module/stepper/indirection.h"
 
 #if ENABLED(EMERGENCY_PARSER)
@@ -537,8 +538,10 @@ void CardReader::manage_media() {
  */
 void CardReader::release() {
   // Card removed while printing? Abort!
-  if (IS_SD_PRINTING())
+  if (IS_SD_PRINTING()) {
+    TERN_(FB_G6_PRINT_JOURNAL, print_session.note_source(SOURCE_MEDIA));
     abortFilePrintSoon();
+  }
   else
     endFilePrintNow();
 

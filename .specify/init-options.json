@@ -1,0 +1,8 @@
+{
+  "ai": "opencode",
+  "feature_numbering": "sequential",
+  "here": true,
+  "integration": "opencode",
+  "script": "py",
+  "speckit_version": "1.1.0"
+}

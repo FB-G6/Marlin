@@ -43,6 +43,7 @@
 #endif
 
 #include "../../feature/caselight.h"
+#include "../../feature/print_session.h"
 
 #include "../../feature/bedlevel/bedlevel.h"
 
@@ -426,6 +427,7 @@ void Touch::touch(touch_control_t *control) {
       ui.pause_print();
       break;
     case STOP_PRINT:
+      TERN_(FB_G6_PRINT_JOURNAL, print_session.note_source(SOURCE_LOCAL_UI));
       ui.screen_num = 0;
       ui.abort_print();
       ui.clear_lcd();
