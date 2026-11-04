@@ -52,6 +52,7 @@
 #include "gcode/queue.h"
 
 #include "feature/pause.h"
+#include "feature/print_session.h"
 #include "sd/cardreader.h"
 
 #include "lcd/marlinui.h"
@@ -354,11 +355,18 @@ void startOrResumeJob() {
     #endif
   }
   print_job_timer.start();
+  TERN_(FB_G6_PRINT_JOURNAL, print_session.start_session());
 }
 
 #if ENABLED(SDSUPPORT)
 
   inline void abortSDPrinting() {
+    // Record the stop before the file is closed and before any move starts
+    #if ENABLED(FB_G6_PRINT_JOURNAL)
+      const StopSource src = print_session.take_source();
+      print_session.end_session(print_session.cause_for_source(src), src);
+    #endif
+
     IF_DISABLED(NO_SD_AUTOSTART, card.autofile_cancel());
     card.abortFilePrintNow(TERN_(SD_RESORT, true));
 
@@ -387,6 +395,7 @@ void startOrResumeJob() {
       marlin_state = MF_RUNNING;          // Signal to stop trying
       TERN_(PASSWORD_AFTER_SD_PRINT_END, password.lock_machine());
       TERN_(DGUS_LCD_UI_MKS, ScreenHandler.SDPrintingFinished());
+      TERN_(FB_G6_PRINT_JOURNAL, print_session.end_session(CAUSE_COMPLETED, SOURCE_FIRMWARE));
     }
     ui.screen_num = 3;
 
@@ -796,6 +805,9 @@ void idle(bool no_stepper_sleep/*=false*/) {
   // Manage Heaters (and Watchdog)
   thermalManager.task();
 
+  // Print session journal: checkpoints and the deferred stop reason screen
+  TERN_(FB_G6_PRINT_JOURNAL, print_session.task());
+
   // Max7219 heartbeat, animation, etc
   TERN_(MAX7219_DEBUG, max7219.idle_tasks());
 
@@ -897,6 +909,12 @@ void idle(bool no_stepper_sleep/*=false*/) {
  */
 void kill(FSTR_P const lcd_error/*=nullptr*/, FSTR_P const lcd_component/*=nullptr*/, const bool steppers_off/*=false*/) {
   thermalManager.disable_all_heaters();
+
+  #if ENABLED(FB_G6_PRINT_JOURNAL)
+    // Heaters are off first; the .noinit record survives a software reset
+    print_session.note_emergency(print_session.emergency_cause());
+    print_session.commit_emergency();
+  #endif
 
   TERN_(HAS_CUTTER, cutter.kill()); // Full cutter shutdown including ISR control
 
@@ -1153,6 +1171,7 @@ void setup() {
 
   // Check startup - does nothing if bootloader sets MCUSR to 0
   const byte mcu = hal.get_reset_source();
+  TERN_(FB_G6_PRINT_JOURNAL, print_session.set_boot_reset(mcu));
   hal.clear_reset_source();
 
   #if ENABLED(MARLIN_DEV_MODE)
@@ -1338,6 +1357,10 @@ void setup() {
 
   SETUP_RUN(settings.first_load());   // Load data from EEPROM if available (or use defaults)
                                       // This also updates variables in the planner, elsewhere
+
+  #if ENABLED(FB_G6_PRINT_JOURNAL)
+    SETUP_RUN(print_session.init());  // Read the journal and synthesize a reset event
+  #endif
 
   #if BOTH(HAS_WIRED_LCD, SHOW_BOOTSCREEN)
     SETUP_RUN(ui.show_bootscreen());

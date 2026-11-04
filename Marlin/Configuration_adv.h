@@ -4222,6 +4222,24 @@
   //#define SERVICE_INTERVAL_3    1 // print hours
 #endif
 
+/**
+ * FB-G6: Print session journal
+ * @section fb-g6-print-journal
+ *
+ * Keep the reason and the source of the last print stops in a dedicated
+ * EEPROM area, so they survive a power cycle and can be reviewed later.
+ * The area is placed at the end of the EEPROM, outside SettingsData, so
+ * "Initialize EEPROM" is not required and user settings are never touched.
+ */
+#define FB_G6_PRINT_JOURNAL                 // Record why and how a print stopped
+#if ENABLED(FB_G6_PRINT_JOURNAL)
+  #define FB_G6_PRINT_JOURNAL_SLOTS      16 // 1..32 events kept in the ring
+  #define FB_G6_PRINT_JOURNAL_REGION    768 // Bytes reserved at the end of the EEPROM
+  #define FB_G6_PRINT_JOURNAL_CHECKPOINT_S 300 // Seconds between checkpoints (0 = start/stop only)
+  #define FB_G6_PRINT_JOURNAL_MODAL           // Show the stop reason as a modal screen
+  #define FB_G6_SD_READ_ERROR_LIMIT       3 // Consecutive SD read errors before aborting
+#endif
+
 // @section develop
 
 //

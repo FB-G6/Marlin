@@ -732,6 +732,21 @@ void MarlinUI::init() {
     draw_kill_screen();
   }
 
+  #if ENABLED(FB_G6_PRINT_JOURNAL) && HAS_DISPLAY
+    /**
+     * Show the last stop reason as a full screen "modal" dialog.
+     * TFT_COLOR_UI has no compositing, so modality is implemented with the
+     * screen stack (specs/001-print-session-diagnostics/contracts/ui-contract.md §1).
+     */
+    void MarlinUI::show_stop_reason() {
+      #if HAS_UI_320x480 && HAS_MARLINUI_MENU
+        if (currentScreen == stop_reason_screen) return; // Repaint without growing the stack
+        push_current_screen();
+        goto_screen(stop_reason_screen);
+      #endif
+    }
+  #endif
+
   #if HAS_TOUCH_SLEEP
     #if HAS_TOUCH_BUTTONS
       #include "touch/touch_buttons.h"

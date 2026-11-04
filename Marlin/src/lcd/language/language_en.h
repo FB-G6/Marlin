@@ -884,6 +884,35 @@ namespace Language_en {
   LSTR MSG_G29_ERROR  				      = _UxGT("Error");
   LSTR MSG_G29_VIEW  				      = _UxGT("View current mesh");
 
+  #if ENABLED(FB_G6_PRINT_JOURNAL)
+    LSTR MSG_STOP_JOURNAL                   = _UxGT("Stop journal");
+    LSTR MSG_STOP_JOURNAL_EMPTY             = _UxGT("Journal is empty");
+    LSTR MSG_STOP_REASON_TITLE              = _UxGT("Print stopped");
+    LSTR MSG_STOP_TAP_TO_CLOSE              = _UxGT("Tap to close");
+    LSTR MSG_STOP_CAUSE_LABEL               = _UxGT("Cause:");
+    LSTR MSG_STOP_SOURCE_LABEL              = _UxGT("Source:");
+    LSTR MSG_STOP_TIME_LABEL                = _UxGT("Time:");
+    LSTR MSG_STOP_FILE_LABEL                = _UxGT("File:");
+    LSTR MSG_STOP_PROGRESS_LABEL            = _UxGT("Progress:");
+    LSTR MSG_STOP_CAUSE_COMPLETED           = _UxGT("Completed");
+    LSTR MSG_STOP_CAUSE_ABORTED             = _UxGT("Cancelled");
+    LSTR MSG_STOP_CAUSE_MEDIA               = _UxGT("Media error");
+    LSTR MSG_STOP_CAUSE_RESET_WATCHDOG      = _UxGT("Reset: watchdog");
+    LSTR MSG_STOP_CAUSE_RESET_POWER         = _UxGT("Reset: power");
+    LSTR MSG_STOP_CAUSE_RESET_SOFTWARE      = _UxGT("Reset: software/button");
+    LSTR MSG_STOP_CAUSE_EMERGENCY_THERMAL   = _UxGT("Emergency: thermal");
+    LSTR MSG_STOP_CAUSE_EMERGENCY_M112      = _UxGT("Emergency: M112");
+    LSTR MSG_STOP_CAUSE_EMERGENCY           = _UxGT("Emergency stop");
+    LSTR MSG_STOP_CAUSE_INTERNAL            = _UxGT("Stopped by firmware");
+    LSTR MSG_STOP_CAUSE_UNKNOWN             = _UxGT("Unknown cause");
+    LSTR MSG_STOP_SOURCE_UNKNOWN            = _UxGT("Unknown");
+    LSTR MSG_STOP_SOURCE_LOCAL              = _UxGT("Screen");
+    LSTR MSG_STOP_SOURCE_NETWORK            = _UxGT("Network");
+    LSTR MSG_STOP_SOURCE_HOST               = _UxGT("Console");
+    LSTR MSG_STOP_SOURCE_MEDIA              = _UxGT("SD card");
+    LSTR MSG_STOP_SOURCE_FIRMWARE           = _UxGT("Firmware");
+  #endif
+
 }
 
 #if FAN_COUNT == 1

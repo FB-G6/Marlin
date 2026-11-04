@@ -26,6 +26,7 @@
 
 #include "../gcode.h"
 #include "../../sd/cardreader.h"
+#include "../../feature/print_session.h"
 
 #if ENABLED(DWIN_LCD_PROUI)
   #include "../../lcd/e3v2/proui/dwin.h"
@@ -42,8 +43,10 @@ void GcodeSuite::M524() {
 
   #else
 
-    if (IS_SD_PRINTING())
+    if (IS_SD_PRINTING()) {
+      TERN_(FB_G6_PRINT_JOURNAL, print_session.note_source(SOURCE_HOST));
       card.abortFilePrintSoon();
+    }
     else if (card.isMounted())
       card.closefile();
 

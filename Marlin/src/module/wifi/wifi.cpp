@@ -31,6 +31,7 @@
 #include "../../lcd/marlinui.h"
 
 #include "../../MarlinCore.h"
+#include "../../feature/print_session.h"
 #include "../../gcode/queue.h"
 #include "../../gcode/gcode.h"
 #include "../../sd/cardreader.h"
@@ -1059,6 +1060,7 @@ static void wifi_gcode_exec(uint8_t *cmd_line) {
         
           // if (card.isPrinting() || card.isPaused()) {
           if (printingIsActive() || printingIsPaused()) {
+            TERN_(FB_G6_PRINT_JOURNAL, print_session.note_source(SOURCE_NETWORK));
             ui.screen_num = 0;
             ui.abort_print(); 
             ui.clear_lcd();

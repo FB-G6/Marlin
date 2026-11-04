@@ -55,6 +55,10 @@
 #include "../gcode/gcode.h"
 #include "../MarlinCore.h"
 
+#if ENABLED(FB_G6_PRINT_JOURNAL)
+  #include "../feature/print_session.h"
+#endif
+
 #if EITHER(EEPROM_SETTINGS, SD_FIRMWARE_UPDATE)
   #include "../HAL/shared/eeprom_api.h"
 #endif
@@ -701,6 +705,11 @@ void MarlinSettings::postprocess() {
 #ifdef ARCHIM2_SPI_FLASH_EEPROM_BACKUP_SIZE
   static_assert(EEPROM_OFFSET + sizeof(SettingsData) < ARCHIM2_SPI_FLASH_EEPROM_BACKUP_SIZE,
                 "ARCHIM2_SPI_FLASH_EEPROM_BACKUP_SIZE is insufficient to capture all EEPROM data.");
+#endif
+
+#if ENABLED(FB_G6_PRINT_JOURNAL)
+  static_assert(EEPROM_OFFSET + sizeof(SettingsData) <= PRINT_JOURNAL_ADDR,
+                "FB_G6 print journal overlaps EEPROM settings.");
 #endif
 
 //

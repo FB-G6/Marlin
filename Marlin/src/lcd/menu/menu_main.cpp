@@ -38,6 +38,7 @@
 #include "../../module/motion.h"
 #include "../../module/planner.h"
 #include "../../feature/caselight.h"
+#include "../../feature/print_session.h"
 
 #if ENABLED(PSU_CONTROL)
   #include "../../feature/power.h"
@@ -306,7 +307,8 @@ void menu_main() {
       SUBMENU(MSG_STOP_PRINT, []{
         MenuItem_confirm::select_screen(
           GET_TEXT_F(MSG_BUTTON_STOP), GET_TEXT_F(MSG_BACK),
-          ui.abort_print, nullptr,
+          []{ TERN_(FB_G6_PRINT_JOURNAL, print_session.note_source(SOURCE_LOCAL_UI)); ui.abort_print(); },
+          nullptr,
           GET_TEXT_F(MSG_STOP_PRINT), (const char *)nullptr, F("?")
         );
       });

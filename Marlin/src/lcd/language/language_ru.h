@@ -893,6 +893,34 @@ namespace Language_ru {
   LSTR MSG_G29_COMPLETE  				  = _UxGT("Выполнено");
   LSTR MSG_G29_ERROR  				      = _UxGT("Ошибка");
   LSTR MSG_G29_VIEW  				      = _UxGT("Просмотр карты стола");
+  #if ENABLED(FB_G6_PRINT_JOURNAL)
+    LSTR MSG_STOP_JOURNAL                   = _UxGT("Журнал остановок");
+    LSTR MSG_STOP_JOURNAL_EMPTY             = _UxGT("Журнал пуст");
+    LSTR MSG_STOP_REASON_TITLE              = _UxGT("Остановка печати");
+    LSTR MSG_STOP_TAP_TO_CLOSE              = _UxGT("Коснитесь, чтобы закрыть");
+    LSTR MSG_STOP_CAUSE_LABEL               = _UxGT("Причина:");
+    LSTR MSG_STOP_SOURCE_LABEL              = _UxGT("Источник:");
+    LSTR MSG_STOP_TIME_LABEL                = _UxGT("Время:");
+    LSTR MSG_STOP_FILE_LABEL                = _UxGT("Файл:");
+    LSTR MSG_STOP_PROGRESS_LABEL            = _UxGT("Прогресс:");
+    LSTR MSG_STOP_CAUSE_COMPLETED           = _UxGT("Завершено");
+    LSTR MSG_STOP_CAUSE_ABORTED             = _UxGT("Отменено");
+    LSTR MSG_STOP_CAUSE_MEDIA               = _UxGT("Ошибка носителя");
+    LSTR MSG_STOP_CAUSE_RESET_WATCHDOG      = _UxGT("Сброс: сторожевой таймер");
+    LSTR MSG_STOP_CAUSE_RESET_POWER         = _UxGT("Сброс: питание");
+    LSTR MSG_STOP_CAUSE_RESET_SOFTWARE      = _UxGT("Сброс: программа/кнопка");
+    LSTR MSG_STOP_CAUSE_EMERGENCY_THERMAL   = _UxGT("Авария: термозащита");
+    LSTR MSG_STOP_CAUSE_EMERGENCY_M112      = _UxGT("Авария: M112");
+    LSTR MSG_STOP_CAUSE_EMERGENCY           = _UxGT("Аварийная остановка");
+    LSTR MSG_STOP_CAUSE_INTERNAL            = _UxGT("Остановлено прошивкой");
+    LSTR MSG_STOP_CAUSE_UNKNOWN             = _UxGT("Причина неизвестна");
+    LSTR MSG_STOP_SOURCE_UNKNOWN            = _UxGT("Неизвестно");
+    LSTR MSG_STOP_SOURCE_LOCAL              = _UxGT("Экран");
+    LSTR MSG_STOP_SOURCE_NETWORK            = _UxGT("Сеть");
+    LSTR MSG_STOP_SOURCE_HOST               = _UxGT("Консоль");
+    LSTR MSG_STOP_SOURCE_MEDIA              = _UxGT("SD-карта");
+    LSTR MSG_STOP_SOURCE_FIRMWARE           = _UxGT("Прошивка");
+  #endif
 }
 
 #if FAN_COUNT == 1
