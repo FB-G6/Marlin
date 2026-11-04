@@ -43,7 +43,8 @@ void menu_journal() {
       const StopEvent * const ev = print_session.event_at(i);
       if (!ev) continue;
 
-      char line[80], time[16];
+      // Longest RU line: "#16 Сброс: сторожевой таймер | Прошивка | ~HH:MM:SS"
+      char line[96], time[16];
       print_session.format_duration(time, ev->duration_s, ev->flags & FLAG_ESTIMATED_DURATION);
       sprintf_P(line, PSTR("#%u %s | %s | %s"),
         uint16_t(total - i),
