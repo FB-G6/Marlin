@@ -170,3 +170,6 @@ __pycache__
 
 # IOLogger logs
 *_log.csv
+
+# npm local cache
+.npm/
