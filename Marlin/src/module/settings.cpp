@@ -740,10 +740,16 @@ void MarlinSettings::postprocess() {
   const char version[4] = EEPROM_VERSION;
 
   #if ENABLED(EEPROM_INIT_NOW)
-    constexpr uint32_t strhash32(const char *s, const uint32_t h=0) {
-      return *s ? strhash32(s + 1, ((h + *s) << (*s & 3)) ^ *s) : h;
-    }
-    constexpr uint32_t build_hash = strhash32(__DATE__ __TIME__);
+    #ifdef FB_G6_EEPROM_LAYOUT_ID
+      // FB-G6: keep a stable layout tag instead of the build timestamp, so a
+      // rebuild does not wipe the user's settings (bump it with EEPROM_VERSION).
+      constexpr uint32_t build_hash = FB_G6_EEPROM_LAYOUT_ID;
+    #else
+      constexpr uint32_t strhash32(const char *s, const uint32_t h=0) {
+        return *s ? strhash32(s + 1, ((h + *s) << (*s & 3)) ^ *s) : h;
+      }
+      constexpr uint32_t build_hash = strhash32(__DATE__ __TIME__);
+    #endif
   #endif
 
   bool MarlinSettings::eeprom_error, MarlinSettings::validating;

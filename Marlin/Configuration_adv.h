@@ -4223,6 +4223,22 @@
 #endif
 
 /**
+ * FB-G6: EEPROM settings layout tag
+ * @section fb-g6-eeprom-layout
+ *
+ * Stored beside EEPROM_VERSION (see EEPROM_INIT_NOW in Configuration.h) and
+ * checked on every boot. Unlike the upstream build timestamp it changes only
+ * when SettingsData changes, so plain rebuilds keep the user's settings.
+ *
+ * Bump this tag and EEPROM_VERSION (module/settings.cpp) together whenever
+ * SettingsData changes. A new tag makes the firmware fall back to the
+ * Configuration.h defaults on the next boot. Updating from a build that used
+ * the upstream build-time tag (e.g. FBG6-2.1.2.7) also resets the settings
+ * once: save them with M503 beforehand and replay the commands afterwards.
+ */
+#define FB_G6_EEPROM_LAYOUT_ID 0x18511780UL
+
+/**
  * FB-G6: Print session journal
  * @section fb-g6-print-journal
  *
