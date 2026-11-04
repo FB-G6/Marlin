@@ -183,7 +183,11 @@ void MarlinUI::draw_kill_screen() {
 
     TERN_(TOUCH_SCREEN, touch.clear());
     tft.queue.reset();
-    tft.fill(0, 0, TFT_WIDTH, TFT_HEIGHT, COLOR_BACKGROUND);
+    // Texts and rectangles are queued into the last task, so the background
+    // must be a canvas task. After a bare fill they would overwrite the
+    // end-of-queue marker and corrupt the task chain.
+    tft.canvas(0, 0, TFT_WIDTH, TFT_HEIGHT);
+    tft.set_background(COLOR_BACKGROUND);
 
     tft_string.set(GET_TEXT_F(MSG_STOP_REASON_TITLE));
     tft_string.trim();

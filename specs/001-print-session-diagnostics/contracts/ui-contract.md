@@ -1,6 +1,10 @@
 # Contract: экранный интерфейс причины и журнала
 
-**Feature**: `001-print-session-diagnostics` | **Версия контракта**: 1
+**Feature**: `001-print-session-diagnostics` | **Версия контракта**: 2
+
+**История версий**: v1 — исходный контракт; v2 (2026-11-04) — §1.3: фон
+модального экрана обязан быть canvas-задачей, `tft.fill()` перед
+`tft.add_text()` запрещён (BUG-001).
 
 UI-контракт для `TFT_COLOR_UI` (MKS TS35 V2.0, 320×480, вертикально).
 Реализация — `Marlin/src/lcd/tft/ui_320x480.cpp` (модальный экран) и
@@ -62,6 +66,14 @@ ui.goto_screen(MarlinUI::stop_reason_screen);   // новый экран, очи
 - Рисуется `tft.canvas(...)` + `tft.set_background(COLOR_BACKGROUND)` +
   `tft.add_rectangle(...)` (рамка) + `tft.add_text(...)`; шрифт — штатный
   `Helvetica18` (кириллица поддерживается, `DISPLAY_CHARSET_RUS`).
+- **Обязательно (v2, BUG-001)**: `tft.add_text()` / `tft.add_rectangle()` /
+  `tft.set_background()` не создают задачу очереди, а дописывают параметры в
+  последнюю созданную задачу и увеличивают её счётчик элементов. Поэтому фон
+  ОБЯЗАН быть canvas-задачей (`tft.canvas()`). После `tft.fill()` в
+  `end_of_queue` лежит маркер `TASK_END_OF_QUEUE`; параметры текста его
+  затирают, `TFT_Queue::async()` уходит по мусорному `nextTask`, задача
+  никогда не завершается, а `TFT_Queue::sync()` крутится до сброса по
+  сторожевому таймеру. `tft.fill()` перед `tft.add_text()` запрещён.
 - Все строки — через `GET_TEXT_F(MSG_*)`; причина и источник выбираются
   функцией `switch`, возвращающей `FSTR_P`, чтобы смена языка применялась
   сразу (research R11).
