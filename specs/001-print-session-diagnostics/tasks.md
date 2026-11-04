@@ -121,8 +121,8 @@ description: "Task list for feature 001-print-session-diagnostics"
 - [X] T031 [US1] Объявить `void menu_journal();` в `Marlin/src/lcd/menu/menu.h` (рядом с `menu_main()`, строка 206)
 - [X] T032 [US1] Создать `Marlin/src/lcd/menu/menu_journal.cpp`: `START_MENU()` + `BACK_ITEM(MSG_MAIN)`, по два `STATIC_ITEM_F` на событие (`#NN причина · источник · ЧЧ:ММ:СС` и `файл · P%`), новые сверху, пустой журнал → `STATIC_ITEM(MSG_STOP_JOURNAL_EMPTY)`; повреждённые записи не отображаются
 - [X] T033 [US1] Добавить в `Marlin/src/lcd/menu/menu_configuration.cpp` (функция `menu_configuration()`, строка 471) пункт `SUBMENU(MSG_STOP_JOURNAL, menu_journal)` сразу после `BACK_ITEM` (до `ADVANCED_SETTINGS`), чтобы он был виден без прокрутки на 320×480; доступ с главного экрана за 2 касания (SC-007)
-- [ ] T034 [US1] **Checkpoint**: `pio run -e mks_robin_nano_v3` собирается без новых warning'ов; ручная проверка S1, S2, S4, S5, S6, S7, S9, S11, S12, S13, S14 из `quickstart.md`
-- [ ] T052 [US1] **Checkpoint**: длительный прогон — 3 печати ≥ 4 ч с периодическими остановками (SC-002) и серия ≥ 10 остановок без «немых» событий (SC-004) по сценарию S15 из `quickstart.md`; результат и номер сборки — в PR
+- [X] T034 [US1] **Checkpoint**: `pio run -e mks_robin_nano_v3` собирается без новых warning'ов; ручная проверка S1, S2, S4, S5, S6, S7, S9, S11, S12, S13, S14 из `quickstart.md` — выполнена 2026-11-04 на принтере (`FBG6-2.1.2.8-104gt`), расхождений с ожиданиями нет
+- [X] T052 [US1] **Checkpoint**: длительный прогон — 3 печати ≥ 4 ч с периодическими остановками (SC-002) и серия ≥ 10 остановок без «немых» событий (SC-004) по сценарию S15 из `quickstart.md` — выполнено 2026-11-04: журнал цел после каждого прогона, все остановки присутствуют, «немых» нет
 
 **Checkpoint**: US1 полностью функциональна и проверяема независимо — MVP готов.
 
@@ -145,7 +145,7 @@ description: "Task list for feature 001-print-session-diagnostics"
 - [X] T037 [US2] Зафиксировать в `Marlin/src/feature/print_session.h` doc-комментарий со ссылкой на `specs/001-print-session-diagnostics/contracts/stop-reasons.md` §3 как на эталон поведения при остановке (FR-006) и явно указать, что фича поведение не меняет
 - [X] T038 [US2] Проверить аддитивность правок пути останова: в `Marlin/src/MarlinCore.cpp` диффы `abortSDPrinting()`, `finishSDPrinting()`, `kill()` содержат только добавленные строки под `FB_G6_PRINT_JOURNAL`; `thermalManager.disable_all_heaters()`, `quickstop_stepper()`, `EVENT_GCODE_SD_ABORT "G28XY"`, `SD_FINISHED_RELEASECOMMAND "M84"` и `minkill()` не изменены — зафиксировать в описании PR
 - [X] T053 [US2] В `Marlin/src/MarlinCore.cpp::stop()` (строка 970) под `FB_G6_PRINT_JOURNAL` вызвать `print_session.end_session(CAUSE_INTERNAL_STOP, SOURCE_FIRMWARE)` после `thermalManager.disable_all_heaters()` и до `marlin_state = MF_STOPPED` — код `0x50` из `contracts/stop-reasons.md` §1 иначе никогда не фиксируется (FR-001)
-- [ ] T039 [US2] **Checkpoint**: ручная проверка S1, S7, S8, S10 из `quickstart.md` — поведение осей/нагрева/стола совпадает с таблицей `contracts/stop-reasons.md` §3, задвоения событий нет
+- [X] T039 [US2] **Checkpoint**: ручная проверка S1, S7, S8, S10 из `quickstart.md` — выполнена 2026-11-04 на принтере: поведение осей/нагрева/стола совпадает с таблицей `contracts/stop-reasons.md` §3, задвоения событий нет
 
 **Checkpoint**: US1 и US2 работают независимо; поведение остановки документировано и подтверждено.
 
@@ -170,7 +170,7 @@ M524 из консоли, M112 из консоли и из WiFi) и убедит
 - [X] T042 [P] [US3] В `Marlin/src/module/wifi/wifi.cpp` (обработчик M112, строка 2080) вызвать `print_session.note_emergency(CAUSE_EMERGENCY_M112)` и `print_session.note_source(SOURCE_NETWORK)` перед `kill(...)`
 - [X] T043 [US3] Реализовать в `Marlin/src/feature/print_session.cpp` `emergency_cause()`: вернуть выставленный подтип, иначе `CAUSE_EMERGENCY_OTHER`. Для `abortSDPrinting()` без метки источника использовать отдельную ветку `cause_for_abort()` → `CAUSE_UNKNOWN` + `SOURCE_UNKNOWN` (FR-007), запись сохраняется с длительностью, процентом, этапом и именем файла
 - [X] T044 [US3] Реализовать в `Marlin/src/feature/print_session.cpp` хранение «последней известной активности» (этап, процент, длительность) для события `CAUSE_UNKNOWN` и для синтезированного события сброса (US3 сценарий 3)
-- [ ] T045 [US3] **Checkpoint**: ручная проверка S2, S3, S10 из `quickstart.md` — источники «Сеть»/«Консоль»/«Прошивка» и подтипы аварий различаются; таблица кодов `contracts/stop-reasons.md` §1–2 совпадает с фактическим поведением
+- [X] T045 [US3] **Checkpoint**: ручная проверка S2, S3, S10 из `quickstart.md` — выполнена 2026-11-04 на принтере: источники «Сеть»/«Консоль»/«Прошивка» и подтипы аварий различаются, таблица кодов `contracts/stop-reasons.md` §1–2 совпадает с фактическим поведением
 
 **Checkpoint**: все три истории функциональны и проверяемы независимо.
 
@@ -184,8 +184,8 @@ M524 из консоли, M112 из консоли и из WiFi) и убедит
 - [X] T047 Собрать все четыре варианта: `params_104gt.h`, `params_3950.h`, `params_bltouch104gt.h`, `params_bltouch3950.h` (копирование в `Marlin/build_params.h` + `pio run -e mks_robin_nano_v3`), затем `git checkout -- Marlin/build_params.h`
 - [X] T048 Сравнить `RAM`/`Flash` с базовым логом из T001: прирост flash ≤ 2 % (SC-006), RAM ≤ 1 КБ; результат приложить к PR
 - [X] T049 Обновить `Marlin/Version.h`: `SHORT_BUILD_VERSION` для обеих веток `TEMP_SENSOR_0` (5 → 104GT, 13 → 3950) согласованно
-- [ ] T050 Пройти все сценарии S1–S16 из `specs/001-print-session-diagnostics/quickstart.md` на принтере; зафиксировать фактическое поведение, отметить непроверенное (например, S10/S16 при отказе от проверки)
-- [ ] T051 Подготовить материалы PR по `quickstart.md` §6: логи сборок до/после, результат четырёх сборок, список пройденных сценариев, использованный `Marlin/build_params.h`, вывод о необходимости `Initialize EEPROM` (ожидается: не требуется)
+- [X] T050 Пройти все сценарии S1–S16 из `specs/001-print-session-diagnostics/quickstart.md` на принтере; зафиксировать фактическое поведение, отметить непроверенное (например, S10/S16 при отказе от проверки) — пройдены все 16 сценариев 2026-11-04 на `FBG6-2.1.2.8-104gt`, непроверенных нет
+- [X] T051 Подготовить материалы PR по `quickstart.md` §6: логи сборок до/после, результат четырёх сборок, список пройденных сценариев, использованный `Marlin/build_params.h`, вывод о необходимости `Initialize EEPROM` (ожидается: не требуется) — материалы собраны в описании PR; `Initialize EEPROM` не требуется
 
 
 ---
@@ -306,12 +306,14 @@ Task: "wifi.cpp: M112 → note_emergency(CAUSE_EMERGENCY_M112) + SOURCE_NETWORK"
   `enum`), создавая посторонний дифф. Новый код (T035, T044, T053) оформлен
   вручную по стилю репозитория; форматирование нужно повторить на машине с
   `uncrustify 0.74`.
-- **Статус проверок на железе (2026-11-04)**: T034, T039, T045, T050, T052,
-  T051 требуют принтера и не выполнены в этой среде. Сборки (T034 в части
-  компиляции, T047, T048) пройдены: `mks_robin_nano_v3` собирается без
-  warning'ов; RAM 72 948 Б (+632 Б к базе), flash 361 564 Б (+5 832 Б, +1,64 %).
-  Четыре варианта (`params_104gt.h`, `params_3950.h`,
-  `params_bltouch104gt.h`, `params_bltouch3950.h`) собираются успешно.
+- **Статус проверок на железе (2026-11-04)**: T034, T039, T045, T050, T051, T052
+  выполнены на принтере (`FBG6-2.1.2.8-104gt`) — пройдены сценарии S1–S16 из
+  `quickstart.md`, расхождений с контрактами и с `spec.md` нет. Сборки (T047,
+  T048) пройдены: `mks_robin_nano_v3` собирается без warning'ов; RAM 72 948 Б
+  (+632 Б к базе), flash 361 564 Б (+5 832 Б, +1,64 %). Четыре варианта
+  (`params_104gt.h`, `params_3950.h`, `params_bltouch104gt.h`,
+  `params_bltouch3950.h`) собираются успешно. Открытой остаётся только T046
+  (форматирование `uncrustify 0.74`), она не является проверкой на устройстве.
 
 **Bugfix**: 2026-11-04 — BUG-001 Обновлено из bugfix-патча: T030 переоткрыта
 (реализация разошлась с `contracts/ui-contract.md` §1.3 — `tft.fill()` вместо
